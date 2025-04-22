@@ -13,8 +13,7 @@
     "start:teacher": "node src/index.js --teacher",
     "start:student": "node src/index.js",
     "test": "node src/test-connection.js",
-    "build": "mkdir -p public && cp -r *.html *.css *.js src/ public/",
-    "vercel-build": "npm run build"
+    "build": "mkdir -p public && cp -r *.html *.css *.js public/"
   },
   "keywords": [
     "p2p",
