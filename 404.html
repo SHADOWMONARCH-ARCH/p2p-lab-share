@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>ShareVerse - P2P Lab Share</title>
-    <link rel="stylesheet" href="front.css">
+    <link rel="stylesheet" href="/front.css">
     <script>
       // Handle client-side routing
       const pathSegments = window.location.pathname.split('/').filter(Boolean);
@@ -11,9 +11,9 @@
       
       // Redirect to the appropriate page based on the URL
       if (lastSegment === 'teacher') {
-        window.location.href = '/src/login/teacher.html';
+        window.location.href = '/src/login/index.html?role=teacher';
       } else if (lastSegment === 'student') {
-        window.location.href = '/src/login/student.html';
+        window.location.href = '/src/login/index.html?role=student';
       } else {
         window.location.href = '/';
       }
