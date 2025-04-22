@@ -2,17 +2,17 @@
   "name": "p2p-lab-share",
   "version": "1.0.0",
   "description": "Peer-to-peer file sharing for lab sessions",
-  "main": "index.html",
+  "main": "login.html",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "index.html",
-    "start:browser": "open index.html",
-    "start:teacher": "node src/index.js --teacher",
-    "start:student": "node src/index.js",
-    "test": "node src/test-connection.js",
+    "start": "login.html",
+    "start:browser": "open login.html",
+    "start:teacher": "node teacher-portal.js",
+    "start:student": "node student-portal.js",
+    "test": "node test-connection.js",
     "build": "mkdir -p public && cp -r *.html *.css *.js public/"
   },
   "keywords": [
@@ -27,7 +27,6 @@
     "dgram": "^1.0.1"
   },
   "files": [
-    "src/",
     "package.json",
     "README.md"
   ]
