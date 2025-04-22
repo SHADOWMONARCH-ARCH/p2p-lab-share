@@ -29,6 +29,8 @@ jobs:
         run: |
           mkdir -p dist
           cp -r *.html *.css *.js src/ dist/
+          # Ensure 404.html is copied to the root of dist
+          cp 404.html dist/
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
