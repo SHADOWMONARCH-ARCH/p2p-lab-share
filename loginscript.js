@@ -103,11 +103,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginButton.classList.add('success');
                 successMessage.classList.add('show');
 
+                // Get the repository name from the current URL
+                const pathParts = window.location.pathname.split('/');
+                const repoName = pathParts.length > 1 ? pathParts[1] : '';
+                const baseUrl = repoName ? `/${repoName}` : '';
+                
                 // Redirect after showing success message
                 setTimeout(() => {
                     const redirectPath = currentPortal === 'teacher' 
-                        ? '/teacher-portal.html'
-                        : '/student-portal.html';
+                        ? `${baseUrl}/teacher-portal.html`
+                        : `${baseUrl}/student-portal.html`;
                     window.location.href = redirectPath;
                 }, 1000);
             } else {

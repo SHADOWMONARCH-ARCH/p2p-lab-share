@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found</title>
+    <script>
+        // Get the repository name from the current URL
+        const repoName = window.location.pathname.split('/')[1];
+        // Redirect to login.html
+        window.location.href = `/${repoName}/login.html`;
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f7fa;
+        }
+        .message {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <h1>Page Not Found</h1>
+        <p>Redirecting to login page...</p>
+    </div>
+</body>
+</html> 

@@ -3,11 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const SESSION_TIMEOUT = 30 * 60 * 1000;
     let timeoutId;
 
+    // Get the repository name from the current URL
+    const pathParts = window.location.pathname.split('/');
+    const repoName = pathParts.length > 1 ? pathParts[1] : '';
+    const baseUrl = repoName ? `/${repoName}` : '';
+
     function resetSessionTimeout() {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
             sessionStorage.removeItem('userData');
-            window.location.href = 'login.html';
+            window.location.href = `${baseUrl}/login.html`;
         }, SESSION_TIMEOUT);
     }
 
@@ -24,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (!userData) {
         // Redirect to login if no user data found
-        window.location.href = 'login.html';
+        window.location.href = `${baseUrl}/login.html`;
         return;
     }
     
@@ -46,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
     logoutButton.addEventListener('click', () => {
         sessionStorage.removeItem('userData');
-        window.location.href = 'login.html';
+        window.location.href = `${baseUrl}/login.html`;
     });
     
     // Add elements to container
