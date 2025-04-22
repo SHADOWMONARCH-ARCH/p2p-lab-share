@@ -164,7 +164,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span>${file.name}</span>
                                     <span class="file-size">${file.size}</span>
                                 </div>
-                                <button class="button" onclick="downloadFile('${file.id}', '${session.name}', '${file.name}', '${file.size}')">Download</button>
+                                <a href="${file.url || '#'}" 
+                                   class="button" 
+                                   download="${file.name}"
+                                   onclick="downloadFile('${file.id}', '${session.name}', '${file.name}', '${file.size}', event)"
+                                >
+                                    Download
+                                </a>
                             </div>
                         `).join('')
                     }
@@ -175,8 +181,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Download file functionality
-    window.downloadFile = function(fileId, sessionName, fileName, fileSize) {
-        const fileItem = document.querySelector(`[onclick="downloadFile('${fileId}', '${sessionName}', '${fileName}', '${fileSize}')"]`).parentNode;
+    window.downloadFile = function(fileId, sessionName, fileName, fileSize, event) {
+        event.preventDefault();
+        
+        const fileItem = event.target.parentNode;
         const progressDiv = document.createElement('div');
         progressDiv.className = 'progress-container';
         progressDiv.innerHTML = `
@@ -201,15 +209,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add to received files
                 const receivedFiles = JSON.parse(localStorage.getItem('receivedFiles-' + currentStudent) || '[]');
-                receivedFiles.push({
+                const file = {
                     id: fileId,
                     name: fileName,
                     size: fileSize,
                     session: sessionName,
-                    downloadDate: new Date().toLocaleString()
-                });
+                    downloadDate: new Date().toLocaleString(),
+                    data: null // This would be the actual file data in a real implementation
+                };
+                receivedFiles.push(file);
                 localStorage.setItem('receivedFiles-' + currentStudent, JSON.stringify(receivedFiles));
                 updateReceivedFilesList(receivedFiles);
+
+                // Trigger the actual file download
+                if (event.target.href && event.target.href !== '#') {
+                    const a = document.createElement('a');
+                    a.href = event.target.href;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
 
                 setTimeout(() => {
                     progressDiv.remove();
@@ -232,10 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
             filePreview.innerHTML = '';
             
             if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension)) {
-                // Simulate image with a placeholder
+                // Handle image files
                 const img = document.createElement('img');
-                // Using a placeholder image for demonstration
-                img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+                img.src = file.url || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
                 img.alt = file.name;
                 img.style.maxWidth = '100%';
                 img.style.height = 'auto';
@@ -250,15 +269,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileName.style.marginTop = '10px';
                 filePreview.appendChild(fileName);
             } else {
-                // Handle other file types as before
+                // Handle other file types
                 filePreview.innerHTML = `
                     <div class="unsupported-file">
                         <i class="file-icon">📄</i>
                         <p>Preview not available for ${file.name}</p>
                         <p class="text-muted">File type: ${fileExtension}</p>
-                        <button class="button" onclick="window.open('#', '_blank')">
-                            Download to view
-                        </button>
+                        <a href="${file.url || '#'}" 
+                           class="button" 
+                           download="${file.name}"
+                           onclick="handleDownload(event, '${fileId}')"
+                        >
+                            Download File
+                        </a>
                     </div>
                 `;
             }
@@ -267,6 +290,48 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = 'block';
         }
     };
+
+    // Handle file download
+    window.handleDownload = function(event, fileId) {
+        event.preventDefault();
+        const receivedFiles = JSON.parse(localStorage.getItem('receivedFiles-' + currentStudent) || '[]');
+        const file = receivedFiles.find(f => f.id === fileId);
+        
+        if (file && file.data) {
+            // Create a blob from the file data
+            const blob = new Blob([file.data], { type: getMimeType(file.name) });
+            const url = window.URL.createObjectURL(blob);
+            
+            // Create a temporary link and trigger download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('File data not available for download');
+        }
+    };
+
+    // Helper function to get MIME type
+    function getMimeType(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const mimeTypes = {
+            'pdf': 'application/pdf',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls': 'application/vnd.ms-excel',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'gif': 'image/gif',
+            'txt': 'text/plain'
+        };
+        return mimeTypes[ext] || 'application/octet-stream';
+    }
 
     window.deleteFile = function(fileId) {
         const receivedFiles = JSON.parse(localStorage.getItem('receivedFiles-' + currentStudent) || '[]');
