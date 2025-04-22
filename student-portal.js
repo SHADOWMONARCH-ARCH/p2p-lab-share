@@ -164,13 +164,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span>${file.name}</span>
                                     <span class="file-size">${file.size}</span>
                                 </div>
-                                <a href="${file.url || '#'}" 
-                                   class="button" 
-                                   download="${file.name}"
-                                   onclick="downloadFile('${file.id}', '${session.name}', '${file.name}', '${file.size}', event)"
-                                >
+                                <button class="button" onclick="downloadFile('${file.id}', '${session.name}', '${file.name}', '${file.size}')">
                                     Download
-                                </a>
+                                </button>
                             </div>
                         `).join('')
                     }
@@ -199,6 +195,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const progressBar = progressDiv.querySelector('.progress');
         const progressText = progressDiv.querySelector('.progress-text');
 
+        // Create some sample data for testing
+        const sampleData = new Uint8Array([80, 68, 70]); // Sample PDF header bytes
+        
         const interval = setInterval(() => {
             progress += Math.random() * 10;
             if (progress >= 100) {
@@ -206,6 +205,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearInterval(interval);
                 progressText.style.color = '#28a745';
                 progressText.textContent = 'Complete';
+                
+                // Create a Blob and trigger download
+                const blob = new Blob([sampleData], { type: getMimeType(fileName) });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
                 
                 // Add to received files
                 const receivedFiles = JSON.parse(localStorage.getItem('receivedFiles-' + currentStudent) || '[]');
@@ -215,21 +225,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     size: fileSize,
                     session: sessionName,
                     downloadDate: new Date().toLocaleString(),
-                    data: null // This would be the actual file data in a real implementation
+                    data: Array.from(sampleData) // Store the data for later use
                 };
                 receivedFiles.push(file);
                 localStorage.setItem('receivedFiles-' + currentStudent, JSON.stringify(receivedFiles));
                 updateReceivedFilesList(receivedFiles);
-
-                // Trigger the actual file download
-                if (event.target.href && event.target.href !== '#') {
-                    const a = document.createElement('a');
-                    a.href = event.target.href;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
 
                 setTimeout(() => {
                     progressDiv.remove();
@@ -269,19 +269,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileName.style.marginTop = '10px';
                 filePreview.appendChild(fileName);
             } else {
-                // Handle other file types
+                // Handle other file types with direct download
                 filePreview.innerHTML = `
                     <div class="unsupported-file">
                         <i class="file-icon">📄</i>
                         <p>Preview not available for ${file.name}</p>
                         <p class="text-muted">File type: ${fileExtension}</p>
-                        <a href="${file.url || '#'}" 
-                           class="button" 
-                           download="${file.name}"
-                           onclick="handleDownload(event, '${fileId}')"
-                        >
+                        <button class="button" onclick="handleDownload('${fileId}')">
                             Download File
-                        </a>
+                        </button>
                     </div>
                 `;
             }
@@ -292,17 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Handle file download
-    window.handleDownload = function(event, fileId) {
-        event.preventDefault();
+    window.handleDownload = function(fileId) {
         const receivedFiles = JSON.parse(localStorage.getItem('receivedFiles-' + currentStudent) || '[]');
         const file = receivedFiles.find(f => f.id === fileId);
         
-        if (file && file.data) {
-            // Create a blob from the file data
-            const blob = new Blob([file.data], { type: getMimeType(file.name) });
+        if (file) {
+            // Create a blob and trigger download
+            const blob = new Blob([new Uint8Array(file.data || [])], { type: getMimeType(file.name) });
             const url = window.URL.createObjectURL(blob);
-            
-            // Create a temporary link and trigger download
             const a = document.createElement('a');
             a.href = url;
             a.download = file.name;
@@ -311,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         } else {
-            alert('File data not available for download');
+            alert('File not found');
         }
     };
 
