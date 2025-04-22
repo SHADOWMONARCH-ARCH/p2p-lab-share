@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Student Dashboard</h1>
+        </div>
+    </header>
+
+    <main>
+        <section class="files-section">
+            <h2>Shared Files</h2>
+            <div class="filter-controls">
+                <div class="form-group">
+                    <label for="subjectFilter">Filter by Subject</label>
+                    <select id="subjectFilter">
+                        <option value="">All Subjects</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classFilter">Filter by Class</label>
+                    <select id="classFilter">
+                        <option value="">All Classes</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="files-list" id="filesList">
+                <!-- Files will be displayed here -->
+            </div>
+        </section>
+    </main>
+
+    <script src="student-dashboard.js"></script>
+</body>
+</html> 

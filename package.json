@@ -1,0 +1,32 @@
+{
+  "name": "p2p-lab-share",
+  "version": "1.0.0",
+  "description": "Peer-to-peer file sharing for lab sessions",
+  "main": "src/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "start:teacher": "node src/index.js --teacher",
+    "start:student": "node src/index.js",
+    "test": "node src/test-connection.js"
+  },
+  "keywords": [
+    "p2p",
+    "file-sharing",
+    "lab",
+    "education"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dgram": "^1.0.1"
+  },
+  "files": [
+    "src/",
+    "package.json",
+    "README.md"
+  ]
+} 

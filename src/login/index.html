@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="split-container" id="loginContainer">
+            <div class="left-section">
+                <div class="logo">
+                    <div class="logo-circle"></div>
+                    <span><h2>Share Verse</h2></span>
+                </div>
+                <div class="hero-content">
+                    <h1>"Study Together. Share Better." <br></h1>
+                    <p>A collaborative file-sharing platform made for students and faculty. Swap notes, assignments, and resources effortlessly to enhance learning across campus.! </p>
+                 </div>
+            </div>
+
+            <div class="right-section">
+                <div class="auth-content">
+                    <h2>Login to account</h2>
+                    
+                    <div class="portal-toggle">
+                        <button class="toggle-btn active" id="teacherBtn">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            Teacher
+                        </button>
+                        <button class="toggle-btn" id="studentBtn">
+                            <i class="fas fa-user-graduate"></i>
+                            Student
+                        </button>
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" placeholder="Enter your username" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="password-input">
+                                <input type="password" id="password" placeholder="Enter your password">
+                                <i class="fas fa-eye-slash" id="togglePassword"></i>
+                            </div>
+                            <a href="#" class="forgot-password" id="forgotPasswordLink">Forgot Password?</a>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="login-btn" id="loginButton">
+                                <span class="button-text">Login</span>
+                                <span class="success-icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="success-message" id="successMessage">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Login Successful!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div class="modal" id="forgotPasswordModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Reset Password</h3>
+                    <button class="close-modal" id="closeModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="resetPasswordForm">
+                    <div class="form-group">
+                        <label for="resetEmail">Email Address</label>
+                        <input type="email" id="resetEmail" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="reset-btn" id="resetButton">
+                            <span class="button-text">Send Reset Link</span>
+                            <span class="success-icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+                <div class="reset-success-message" id="resetSuccessMessage">
+                    <i class="fas fa-envelope"></i>
+                    <p>Password reset link sent!</p>
+                    <span>Please check your email</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
