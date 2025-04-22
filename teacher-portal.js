@@ -225,13 +225,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Logout
     logoutBtn.addEventListener('click', () => {
-        // Clear only the current teacher's sessions
-        const sessions = JSON.parse(localStorage.getItem('activeSessions') || '[]');
-        const updatedSessions = sessions.filter(s => s.teacher !== currentTeacher);
-        localStorage.setItem('activeSessions', JSON.stringify(updatedSessions));
-        
         localStorage.removeItem('currentTeacher');
-        window.location.href = '/src/login/index.html';
+        window.location.href = '/login.html';
     });
 
     // Initialize

@@ -105,10 +105,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Redirect after showing success message
                 setTimeout(() => {
-                    const redirectUrl = currentPortal === 'teacher' 
-                        ? '/src/teacher-portal/teacher-portal.html' 
-                        : '/src/student-portal/student-portal.html';
-                    window.location.href = redirectUrl;
+                    const redirectPath = currentPortal === 'teacher' 
+                        ? '/teacher-portal.html'
+                        : '/student-portal.html';
+                    window.location.href = redirectPath;
                 }, 1000);
             } else {
                 throw new Error('Invalid credentials');

@@ -306,20 +306,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Logout
     logoutBtn.addEventListener('click', () => {
-        // Remove student from all sessions
-        const sessions = JSON.parse(localStorage.getItem('activeSessions') || '[]');
-        sessions.forEach(session => {
-            if (session.students) {
-                const studentIndex = session.students.findIndex(s => s.name === currentStudent);
-                if (studentIndex !== -1) {
-                    session.students.splice(studentIndex, 1);
-                }
-            }
-        });
-        localStorage.setItem('activeSessions', JSON.stringify(sessions));
-        
         localStorage.removeItem('currentStudent');
-        window.location.href = '/src/login/index.html';
+        window.location.href = '/login.html';
     });
 
     // Initialize
