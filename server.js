@@ -1,117 +1,123 @@
-const WebSocket = require('ws');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+import express from 'express';
+import http from 'http';
+import https from 'https';
+import { WebSocketServer } from 'ws';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { readFileSync } from 'fs';
 
-const server = http.createServer((req, res) => {
-    // Simple static file server
-    let filePath = '.' + req.url;
-    if (filePath === './') {
-        filePath = './index.html';
-    }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-    const extname = path.extname(filePath);
-    const contentType = {
-        '.html': 'text/html',
-        '.js': 'text/javascript',
-        '.css': 'text/css'
-    }[extname] || 'text/plain';
+const app = express();
+let server;
 
-    fs.readFile(filePath, (error, content) => {
-        if (error) {
-            if (error.code === 'ENOENT') {
-                res.writeHead(404);
-                res.end('File not found');
-            } else {
-                res.writeHead(500);
-                res.end('Server error: ' + error.code);
-            }
-        } else {
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf-8');
-        }
-    });
+// Environment variables
+const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const WS_URL = process.env.WS_URL || `ws://localhost:${PORT}`;
+
+// In development, use HTTP. In production (Vercel), also use HTTP
+server = http.createServer(app);
+
+const wss = new WebSocketServer({ server });
+
+// Store active connections by IP
+const connections = new Map();
+
+// Serve static files from the root directory
+app.use(express.static(__dirname));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', environment: NODE_ENV });
 });
 
-const wss = new WebSocket.Server({ server });
-const peers = new Map();
+// Route handlers for HTML files
+app.get('/', (req, res) => {
+    res.sendFile(join(__dirname, 'index.html'));
+});
 
-wss.on('connection', (ws) => {
-    const peerId = generatePeerId();
-    peers.set(peerId, ws);
+app.get('/connect', (req, res) => {
+    res.sendFile(join(__dirname, 'connect.html'));
+});
 
-    // Send the peer their ID
-    ws.send(JSON.stringify({
-        type: 'init',
-        peerId
-    }));
+app.get('/login', (req, res) => {
+    res.sendFile(join(__dirname, 'login.html'));
+});
 
-    // Announce new peer to all other peers
-    broadcast({
-        type: 'peerConnected',
-        peerId,
-        address: ws._socket.remoteAddress
-    }, ws);
+app.get('/teacher-portal', (req, res) => {
+    res.sendFile(join(__dirname, 'teacher-portal.html'));
+});
+
+app.get('/student-portal', (req, res) => {
+    res.sendFile(join(__dirname, 'student-portal.html'));
+});
+
+// WebSocket connection handling
+wss.on('connection', (ws, req) => {
+    const clientIp = req.socket.remoteAddress;
+    console.log(`New client connected from IP: ${clientIp}`);
+
+    // Store the connection with its IP
+    connections.set(clientIp, ws);
 
     ws.on('message', (message) => {
-        try {
-            const data = JSON.parse(message);
-            handleMessage(data, peerId, ws);
-        } catch (error) {
-            console.error('Error handling message:', error);
+        const data = JSON.parse(message);
+        
+        switch (data.type) {
+            case 'connect-to-ip':
+                // Handle direct IP connection request
+                const targetWs = connections.get(data.targetIp);
+                if (targetWs) {
+                    // Send connection request to target
+                    targetWs.send(JSON.stringify({
+                        type: 'connection-request',
+                        fromIp: clientIp
+                    }));
+                }
+                break;
+
+            case 'accept-connection':
+                // Handle connection acceptance
+                const requestorWs = connections.get(data.targetIp);
+                if (requestorWs) {
+                    requestorWs.send(JSON.stringify({
+                        type: 'connection-accepted',
+                        fromIp: clientIp
+                    }));
+                }
+                break;
+
+            case 'offer':
+            case 'answer':
+            case 'ice-candidate':
+                // WebRTC signaling
+                const target = connections.get(data.targetIp);
+                if (target) {
+                    target.send(JSON.stringify({
+                        ...data,
+                        fromIp: clientIp
+                    }));
+                }
+                break;
         }
     });
 
     ws.on('close', () => {
-        peers.delete(peerId);
-        broadcast({
-            type: 'peerDisconnected',
-            peerId
-        });
+        // Remove disconnected client
+        connections.delete(clientIp);
+        console.log(`Client disconnected: ${clientIp}`);
     });
 });
 
-function handleMessage(message, senderId, senderWs) {
-    switch (message.type) {
-        case 'chunkAvailable':
-            // Forward chunk availability to all peers except sender
-            broadcast({
-                type: 'fileAvailable',
-                fileInfo: {
-                    ...message.chunk,
-                    peerId: senderId
-                }
-            }, senderWs);
-            break;
-        
-        case 'requestChunk':
-            // Forward chunk request to the specific peer
-            const targetPeer = peers.get(message.targetPeerId);
-            if (targetPeer) {
-                targetPeer.send(JSON.stringify({
-                    type: 'chunkRequested',
-                    chunkId: message.chunkId,
-                    requesterId: senderId
-                }));
-            }
-            break;
-    }
-}
-
-function broadcast(message, exclude = null) {
-    const messageStr = JSON.stringify(message);
-    peers.forEach((peer) => {
-        if (peer !== exclude && peer.readyState === WebSocket.OPEN) {
-            peer.send(messageStr);
-        }
-    });
-}
-
-function generatePeerId() {
-    return Math.random().toString(36).substr(2, 9);
-}
-
-const PORT = process.env.PORT || 6881;
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
+    console.log(`WebSocket URL: ${WS_URL}`);
+    console.log('Available routes:');
+    console.log('- / (index.html)');
+    console.log('- /connect (connect.html)');
+    console.log('- /login (login.html)');
+    console.log('- /teacher-portal (teacher-portal.html)');
+    console.log('- /student-portal (student-portal.html)');
 }); 

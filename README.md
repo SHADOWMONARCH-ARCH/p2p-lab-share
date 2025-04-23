@@ -1,23 +1,69 @@
 # P2P Lab Share
 
-A decentralized, serverless, peer-to-peer file sharing system for lab sessions. Allows teachers to distribute files to students over the same local network without requiring a central server or internet connection.
+A decentralized, peer-to-peer file sharing system for lab sessions. Allows teachers to distribute files to students over the same network or across different devices.
 
 ## Features
 
-- Fully decentralized P2P architecture
-- Automatic peer discovery
-- Encrypted file transfer
-- Cross-platform support (Windows, macOS, Linux)
-- No internet dependency
-- Simple command-line interface
+- Cross-device P2P file sharing
+- Real-time file transfer
+- Encrypted communication
+- No central server dependency
+- Simple and intuitive interface
 
-## Prerequisites
+## Deployment
 
-- Node.js 18+ installed
-- Both teacher and student devices must be on the same local network
-- UDP multicast must be enabled on the network
+### Option 1: Deploy to Vercel (Recommended)
 
-## Installation
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Login to Vercel:
+```bash
+vercel login
+```
+
+3. Deploy the project:
+```bash
+vercel
+```
+
+4. Set environment variables in Vercel dashboard:
+```
+WS_URL=wss://your-vercel-url.vercel.app
+```
+
+### Option 2: Local Deployment
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Generate SSL certificates (for HTTPS):
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+```
+
+3. Start the server:
+```bash
+npm start
+```
+
+## Usage
+
+1. Teacher:
+   - Open the teacher portal
+   - Create a new session
+   - Share files with students
+
+2. Student:
+   - Open the student portal
+   - Join the teacher's session
+   - Receive and download files
+
+## Development
 
 1. Clone the repository:
 ```bash
@@ -30,98 +76,17 @@ cd p2p-lab-share
 npm install
 ```
 
-## Usage
-
-### Teacher Mode
-
-1. Start the application in teacher mode:
+3. Start development server:
 ```bash
-npm run start:teacher
+npm run dev
 ```
-
-2. Share a file:
-```
-> share path/to/your/file
-```
-
-File path examples:
-- Windows: `share C:\Users\Teacher\Documents\file.txt`
-- macOS/Linux: `share /home/teacher/Documents/file.txt`
-- Relative path: `share ./files/file.txt`
-
-### Student Mode
-
-1. Start the application in student mode:
-```bash
-npm run start:student
-```
-
-2. The application will automatically:
-   - Discover the teacher
-   - Receive available files
-   - Download and save them
-
-## Network Requirements
-
-- Both teacher and student devices must be on the same local network
-- UDP multicast must be enabled (port 1900)
-- No firewall blocking UDP communication
-
-### Enabling UDP Multicast
-
-#### Windows:
-1. Open Windows Defender Firewall
-2. Go to Advanced Settings
-3. Add an inbound rule for UDP port 1900
-4. Add an outbound rule for UDP port 1900
-
-#### macOS:
-```bash
-sudo pfctl -e
-sudo pfctl -f /etc/pf.conf
-```
-
-#### Linux:
-```bash
-sudo iptables -A INPUT -p udp --dport 1900 -j ACCEPT
-sudo iptables -A OUTPUT -p udp --dport 1900 -j ACCEPT
-```
-
-## Troubleshooting
-
-1. **Cannot discover peers**:
-   - Verify both devices are on the same network
-   - Check firewall settings
-   - Ensure UDP multicast is enabled
-   - Try running with administrator/root privileges
-
-2. **File transfer fails**:
-   - Check network connectivity
-   - Verify file permissions
-   - Ensure enough disk space
-   - Check if antivirus is blocking the transfer
-
-3. **Connection issues**:
-   - Try restarting the application
-   - Check network settings
-   - Verify no antivirus is blocking the connection
-   - Ensure both devices are using the same version of the application
 
 ## Security
 
 - All communications are encrypted
 - Files are transferred in encrypted chunks
-- Teacher authentication is required
-- No central server or third-party services
-
-## Development
-
-To contribute to the project:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+- No central server storage
+- Secure WebRTC connections
 
 ## License
 

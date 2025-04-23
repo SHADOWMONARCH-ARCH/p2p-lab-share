@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Portal - Lab Share</title>
+    <link rel="stylesheet" href="chat.css">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -199,13 +200,13 @@
     </style>
 </head>
 <body>
-    <div class="header">
+    <header class="header">
         <h1>Teacher Portal</h1>
         <div class="user-info">
             <span id="teacherName"></span>
             <button class="button secondary" id="logoutBtn">Logout</button>
         </div>
-    </div>
+    </header>
 
     <div class="main-content">
         <div class="file-upload">
@@ -233,6 +234,23 @@
         <div class="network-status">
             <h3>Network Status</h3>
             <div id="networkStatus" class="status-message"></div>
+        </div>
+    </div>
+
+    <!-- Chat Overlay -->
+    <div class="chat-overlay">
+        <div class="chat-header">
+            <h3>Class Chat</h3>
+            <button class="chat-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" placeholder="Type your message...">
+            <button>
+                <i class="fas fa-paper-plane"></i>
+            </button>
         </div>
     </div>
 

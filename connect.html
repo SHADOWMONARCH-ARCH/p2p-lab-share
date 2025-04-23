@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .connection-form {
+            margin-bottom: 20px;
+        }
+        .connection-form input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .file-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .received-files {
+            margin-top: 20px;
+        }
+        .my-ip-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .my-ip-section span {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .qr-section {
+            margin: 20px 0;
+            text-align: center;
+        }
+        #qrcode {
+            margin: 10px auto;
+        }
+        .copy-button {
+            background: #28a745;
+        }
+        .copy-button:hover {
+            background: #218838;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .transfer-status {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>P2P File Sharing</h1>
+        
+        <div class="my-ip-section">
+            <span id="myIpDisplay">Your IP: Loading...</span>
+            <button onclick="copyMyIp()" class="copy-button">Copy IP</button>
+            <button onclick="refreshIp()">Refresh IP</button>
+        </div>
+
+        <div class="qr-section">
+            <h3>Your IP as QR Code</h3>
+            <div id="qrcode"></div>
+        </div>
+        
+        <div class="connection-form">
+            <input type="text" id="targetIp" placeholder="Enter target IP address">
+            <button onclick="connect()">Connect</button>
+        </div>
+
+        <div id="status" class="status disconnected">
+            Not connected
+        </div>
+
+        <div class="file-section" id="fileSection" style="display: none;">
+            <h2>Share Files</h2>
+            <input type="file" id="fileInput" multiple>
+            <button onclick="sendFiles()">Send Files</button>
+
+            <div id="transferStatus" class="transfer-status"></div>
+            <div class="progress-bar">
+                <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+
+            <div class="received-files">
+                <h3>Received Files</h3>
+                <ul id="receivedFiles"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/webrtc-manager.js"></script>
+    <script>
+        let rtcManager;
+        let connectedPeer = null;
+        let receivedFileChunks = new Map();
+        let myIp = '';
+
+        async function getMyIp() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                myIp = data.ip;
+                document.getElementById('myIpDisplay').textContent = `Your IP: ${myIp}`;
+                generateQRCode(myIp);
+            } catch (error) {
+                document.getElementById('myIpDisplay').textContent = 'Could not fetch IP';
+            }
+        }
+
+        function generateQRCode(ip) {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            QRCode.toCanvas(qrContainer, ip, { width: 200 }, function (error) {
+                if (error) console.error(error);
+            });
+        }
+
+        function copyMyIp() {
+            if (myIp) {
+                navigator.clipboard.writeText(myIp).then(() => {
+                    alert('IP copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy IP:', err);
+                });
+            }
+        }
+
+        function refreshIp() {
+            getMyIp();
+        }
+
+        window.onload = () => {
+            rtcManager = new WebRTCManager();
+            getMyIp();
+            
+            // Implement callback methods
+            rtcManager.onConnectionEstablished = (targetIp) => {
+                connectedPeer = targetIp;
+                document.getElementById('status').className = 'status connected';
+                document.getElementById('status').textContent = `Connected to ${targetIp}`;
+                document.getElementById('fileSection').style.display = 'block';
+            };
+
+            rtcManager.onConnectionClosed = (targetIp) => {
+                if (targetIp === connectedPeer) {
+                    connectedPeer = null;
+                    document.getElementById('status').className = 'status disconnected';
+                    document.getElementById('status').textContent = 'Disconnected';
+                    document.getElementById('fileSection').style.display = 'none';
+                }
+            };
+
+            rtcManager.onFileChunkReceived = (chunk, fromIp) => {
+                if (!receivedFileChunks.has(chunk.fileName)) {
+                    receivedFileChunks.set(chunk.fileName, {
+                        chunks: new Array(chunk.totalChunks),
+                        received: 0,
+                        size: chunk.fileSize
+                    });
+                }
+
+                const fileData = receivedFileChunks.get(chunk.fileName);
+                fileData.chunks[chunk.chunkIndex] = chunk.data;
+                fileData.received++;
+
+                // Update progress bar
+                const progress = (fileData.received / chunk.totalChunks) * 100;
+                document.getElementById('progressBarFill').style.width = `${progress}%`;
+                document.getElementById('transferStatus').textContent = 
+                    `Receiving ${chunk.fileName}: ${Math.round(progress)}%`;
+
+                if (fileData.received === chunk.totalChunks) {
+                    // All chunks received, reconstruct the file
+                    const blob = new Blob(fileData.chunks);
+                    const url = URL.createObjectURL(blob);
+                    
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = chunk.fileName;
+                    a.textContent = `${chunk.fileName} (${formatFileSize(chunk.fileSize)})`;
+                    li.appendChild(a);
+                    document.getElementById('receivedFiles').appendChild(li);
+
+                    // Clean up
+                    receivedFileChunks.delete(chunk.fileName);
+                    document.getElementById('progressBarFill').style.width = '0%';
+                    document.getElementById('transferStatus').textContent = 'Transfer complete!';
+                }
+            };
+        };
+
+        function connect() {
+            const targetIp = document.getElementById('targetIp').value.trim();
+            if (targetIp) {
+                rtcManager.connectToIP(targetIp);
+            }
+        }
+
+        function sendFiles() {
+            const files = document.getElementById('fileInput').files;
+            if (files.length > 0 && connectedPeer) {
+                Array.from(files).forEach(file => {
+                    rtcManager.sendFile(file, connectedPeer);
+                });
+            }
+        }
+
+        function formatFileSize(bytes) {
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let size = bytes;
+            let unitIndex = 0;
+            while (size >= 1024 && unitIndex < units.length - 1) {
+                size /= 1024;
+                unitIndex++;
+            }
+            return `${size.toFixed(1)} ${units[unitIndex]}`;
+        }
+    </script>
+</body>
+</html> 

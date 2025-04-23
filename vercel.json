@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/health",
+      "dest": "server.js"
+    },
+    {
+      "src": "/connect",
+      "dest": "server.js"
+    },
+    {
+      "src": "/login",
+      "dest": "server.js"
+    },
+    {
+      "src": "/teacher-portal",
+      "dest": "server.js"
+    },
+    {
+      "src": "/student-portal",
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+} 
